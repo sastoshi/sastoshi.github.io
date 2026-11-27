@@ -107,6 +107,8 @@
   #monthTitle { font-size: 1.28rem; font-weight: bold; color: var(--navy); margin: 0 14px; letter-spacing: .04em; }
   .calpanel { padding: 10px; }
   table.cal { border-collapse: collapse; width: 100%; background: #fff; table-layout: fixed; }
+  .calpanel { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table.cal { min-width: 660px; }
   table.cal th, table.cal td { border: 1px solid #e0e8ee; vertical-align: top; padding: 4px; }
   table.cal th { background: #e9eff5; color: var(--navy); font-size: .8rem; padding: 6px 2px; border-color: #d5e0e9; }
   table.cal th:first-child { color: #b3352c; }
@@ -127,6 +129,10 @@
   .ev.ms { background: #efe9fa; border-left-color: var(--ms); }
   .ev.indie { background: #e2f2f2; border-left-color: var(--indie); }
   .ev .vn { color: #44586a; }
+  .ev.cont { opacity: .7; border-left-style: dashed; }
+  .ev .days { font-weight: bold; white-space: nowrap; }
+  .ev.more { background: transparent; border-left: none; color: var(--muted); font-weight: bold; padding: 1px 2px; }
+  .legend summary { font-size: .92rem; color: var(--navy); padding: 2px 0 4px; }
   .ev.flagged { outline: 1.5px dashed #dd6b20; background: #fff7e8; }
   .bmini { color: #55677a; font-size: .92em; }
   /* リスト・カード */
@@ -185,12 +191,14 @@
 <div class="wrap">
 <div class="sub" id="summaryLine"></div>
 <div class="legend panel">
+  <details><summary>色とバッジの見方（タップで開く）</summary>
   <div><span class="badge ama">アマ</span>アマチュア大会（NSA）＝アマチュアが出場できる大会</div>
   <div><span class="badge s1">S1</span><span class="badge s2">S2</span>プロツアー（JPSA S.LEAGUE）＝出場はプロ資格者が中心です。観戦・応援の目安に</div>
   <div><span class="badge trial">トライアル</span>トライアル＝アマチュアも挑戦できる大会（プロを目指す入口）</div>
   <div><span class="badge ms">MS</span>マスターズ＝45歳以上のプロ戦</div>
   <div><span class="badge indie">地域</span>地域・独立系＝NSA／JPSA以外の地域大会</div>
   <div><span class="badge board b-short">ショート</span><span class="badge board b-long">ロング</span><span class="badge board b-bb">BB</span><span class="badge board b-sup">SUP</span>ボード種別＝公式のクラス表記から判定できた大会だけに付けています（無い大会は種別不明）</div>
+  </details>
 </div>
 <div class="warn-note">⚠ マークの大会は、日付などに確認が必要な点があるものです。確定情報として扱わず、公式ページで必ずご確認ください。</div>
 
@@ -295,11 +303,18 @@ function renderCalendar() {
   const daysInMonth = new Date(curYear, curMonth, 0).getDate();
   const daysInPrev = new Date(curYear, curMonth - 1, 0).getDate();
   const byDay = {};
+  const mStart = new Date(curYear, curMonth - 1, 1);
+  const mEnd = new Date(curYear, curMonth, 0);
   records.filter(r => !r.past && !r.nodate && matchAll(r)).forEach(r => {
-    const d = new Date(r.start + 'T00:00:00');
-    if (d.getFullYear() === curYear && d.getMonth() === curMonth - 1) {
-      const k = d.getDate();
-      (byDay[k] = byDay[k] || []).push(r);
+    const s = new Date(r.start + 'T00:00:00');
+    const e = r.end ? new Date(r.end + 'T00:00:00') : s;
+    if (e < mStart || s > mEnd) return;
+    const totalDays = Math.round((e - s) / 86400000) + 1;
+    const from = s < mStart ? mStart : s;
+    const to = e > mEnd ? mEnd : e;
+    for (let d = new Date(from); d <= to; d.setDate(d.getDate() + 1)) {
+      const dayIdx = Math.round((d - s) / 86400000) + 1;
+      (byDay[d.getDate()] = byDay[d.getDate()] || []).push({ r, first: dayIdx === 1, dayIdx, totalDays });
     }
   });
   let html = '<tr>' + ['日','月','火','水','木','金','土'].map(d => `<th>${d}</th>`).join('') + '</tr>';
@@ -315,10 +330,17 @@ function renderCalendar() {
       } else {
         const isToday = (DATA.cutoff === `${curYear}-${String(curMonth).padStart(2,'0')}-${String(day).padStart(2,'0')}`);
         let cell = `<td class="${isToday ? 'today' : ''}"><span class="dnum">${day}</span>`;
-        (byDay[day] || []).forEach(r => {
-          const bl = r.board_short.length ? `<br><span class="bmini">🏄 ${escapeHtml(r.board_short.join('・'))}</span>` : '';
-          cell += `<div class="ev ${r.cat_class}${r.flagged ? ' flagged' : ''}"><span class="badge ${r.cat_class}">${escapeHtml(r.cat_short)}</span>${r.flagged ? '⚠ ' : ''}${escapeHtml(r.title)}<br><span class="vn">${escapeHtml(r.venue)}</span>${bl}</div>`;
+        const items = (byDay[day] || []).slice().sort((a, b) => (a.first === b.first ? 0 : a.first ? -1 : 1));
+        items.slice(0, 4).forEach(it => {
+          const r = it.r;
+          if (it.first) {
+            const days = it.totalDays > 1 ? ` <span class="days">${it.totalDays}日間</span>` : '';
+            cell += `<div class="ev ${r.cat_class}${r.flagged ? ' flagged' : ''}"><span class="badge ${r.cat_class}">${escapeHtml(r.cat_short)}</span>${r.flagged ? '⚠ ' : ''}${escapeHtml(r.title)}${days}</div>`;
+          } else {
+            cell += `<div class="ev cont ${r.cat_class}">${escapeHtml(r.title)}（${it.dayIdx}日目）</div>`;
+          }
         });
+        if (items.length > 4) cell += `<div class="ev more">＋${items.length - 4}件</div>`;
         html += cell + '</td>';
         day++;
       }

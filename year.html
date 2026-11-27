@@ -79,6 +79,7 @@
   .yev.ms { background: #efe9fa; border-left-color: var(--ms); }
   .yev.indie { background: #e2f2f2; border-left-color: var(--indie); }
   .yev .bl { font-weight: bold; color: #44586a; }
+  .yev.cont { opacity: .65; border-left-style: dashed; }
   @media (max-width: 900px) { .yeargrid { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 640px) {
     .head-in { padding: 14px 12px 11px; gap: 10px; }
@@ -164,13 +165,22 @@ function renderMonth(m) {
   const daysInMonth = new Date(curYear, m, 0).getDate();
   const daysInPrev = new Date(curYear, m - 1, 0).getDate();
   const byDay = {};
+  const seen = new Set();
+  const mStart = new Date(curYear, m - 1, 1);
+  const mEnd = new Date(curYear, m, 0);
   plotted.forEach(r => {
-    const d = new Date(r.start + 'T00:00:00');
-    if (d.getFullYear() === curYear && d.getMonth() === m - 1) {
-      (byDay[d.getDate()] = byDay[d.getDate()] || []).push(r);
+    const s = new Date(r.start + 'T00:00:00');
+    const e = r.end ? new Date(r.end + 'T00:00:00') : s;
+    if (e < mStart || s > mEnd) return;
+    seen.add(r);
+    const from = s < mStart ? mStart : s;
+    const to = e > mEnd ? mEnd : e;
+    for (let d = new Date(from); d <= to; d.setDate(d.getDate() + 1)) {
+      const dayIdx = Math.round((d - s) / 86400000) + 1;
+      (byDay[d.getDate()] = byDay[d.getDate()] || []).push({ r, first: dayIdx === 1, dayIdx });
     }
   });
-  const cnt = Object.values(byDay).reduce((a, v) => a + v.length, 0);
+  const cnt = seen.size;
   let html = `<div class="month"><h3><a href="index.html?y=${curYear}&m=${m}">${curYear}年${m}月</a> <span class="cnt">${cnt}件</span></h3>`;
   html += '<table class="mini"><tr>' + ['日','月','火','水','木','金','土'].map(d => `<th>${d}</th>`).join('') + '</tr>';
   let day = 1, prevDay = daysInPrev - startDow + 1;
@@ -184,9 +194,14 @@ function renderMonth(m) {
         html += `<td class="dim"><span class="dnum">${day - daysInMonth}</span></td>`; day++;
       } else {
         let cell = `<td><span class="dnum">${day}</span>`;
-        (byDay[day] || []).forEach(r => {
-          const bl = r.board_short.length ? ` <span class="bl">[${escapeHtml(r.board_short.join('・'))}]</span>` : '';
-          cell += `<div class="yev ${r.cat_class}" title="${escapeHtml(r.title)}">${escapeHtml(shortTitle(r.title))}${bl}</div>`;
+        (byDay[day] || []).forEach(it => {
+          const r = it.r;
+          if (it.first) {
+            const bl = r.board_short.length ? ` <span class="bl">[${escapeHtml(r.board_short.join('・'))}]</span>` : '';
+            cell += `<div class="yev ${r.cat_class}" title="${escapeHtml(r.title)}">${escapeHtml(shortTitle(r.title))}${bl}</div>`;
+          } else {
+            cell += `<div class="yev cont ${r.cat_class}" title="${escapeHtml(r.title)}">${escapeHtml(shortTitle(r.title))}（${it.dayIdx}日目）</div>`;
+          }
         });
         html += cell + '</td>';
         day++;
