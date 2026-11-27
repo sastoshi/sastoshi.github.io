@@ -136,6 +136,7 @@
   .foot-links { display: flex; flex-wrap: wrap; gap: 10px; margin: 22px 0 4px; }
   .foot-links a { background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; color: var(--navy); text-decoration: none; font-weight: bold; font-size: .88rem; box-shadow: var(--shadow); }
   .foot-links a.fl-line { background: #06c755; color: #fff; border-color: #06c755; }
+  .notify-btn { display: inline-block; margin-top: 8px; background: #06c755; color: #fff; border-radius: 999px; padding: 7px 14px; text-decoration: none; font-weight: bold; font-size: .85rem; }
   .ev.flagged { outline: 1.5px dashed #dd6b20; background: #fff7e8; }
   .bmini { color: #55677a; font-size: .92em; }
   /* リスト・カード */
@@ -236,6 +237,7 @@
 <div class="panel calpanel"><table class="cal" id="calTable"></table></div>
 
 <h2>今後の大会（日付順）</h2>
+<p class="hint">🔔 のボタンから、その大会のエントリー開始をLINEでお知らせできます（開始の3日前からお知らせします）。</p>
 <div id="upcomingList"></div>
 
 <details>
@@ -363,6 +365,13 @@ function escapeHtml(s) {
   return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+function notifyUrl(r) {
+  return 'https://line.me/R/oaMessage/@779xjnww/?' + encodeURIComponent('本命登録：' + r.title);
+}
+function notifyBtn(r) {
+  return `<a class="notify-btn" href="${notifyUrl(r)}" target="_blank" rel="noopener">🔔 この大会のエントリー開始をLINEで知らせる</a>`;
+}
+
 function cardHtml(r) {
   let dates = r.start_disp || '開催日未定';
   if (r.end_disp && r.end_disp !== r.start_disp) dates += ` 〜 ${r.end_disp}`;
@@ -377,6 +386,7 @@ function cardHtml(r) {
   if (r.entryplus) h += `<div class="meta"><b>エントリー：</b><a href="${escapeHtml(r.entryplus)}" target="_blank" rel="noopener">エントリープラス</a></div>`;
   if (r.source) h += `<div class="meta"><b>公式：</b><a href="${escapeHtml(r.source)}" target="_blank" rel="noopener">${escapeHtml(r.source_label)}</a></div>`;
   if (r.flagged) h += `<div class="flagmsg">⚠ 要確認：${escapeHtml(r.flags)}</div>`;
+  if (!r.past) h += notifyBtn(r);
   h += '</div>';
   return h;
 }
@@ -441,6 +451,7 @@ function entryCardHtml(it) {
   if (r.entryplus) h += `<div class="meta"><b>エントリー：</b><a href="${escapeHtml(r.entryplus)}" target="_blank" rel="noopener">エントリープラス</a></div>`;
   if (r.source) h += `<div class="meta"><b>公式：</b><a href="${escapeHtml(r.source)}" target="_blank" rel="noopener">${escapeHtml(r.source_label)}</a></div>`;
   if (r.flagged) h += `<div class="flagmsg">⚠ 要確認：${escapeHtml(r.flags)}</div>`;
+  h += notifyBtn(r);
   h += '</div></div>';
   return h;
 }
