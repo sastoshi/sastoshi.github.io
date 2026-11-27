@@ -72,6 +72,8 @@
   td.dim .dnum { color: #a7b3bc; font-weight: normal; }
   .yev { border-left: 3px solid var(--ama); border-radius: 4px; padding: 2px 3px; margin-top: 2px;
          word-break: break-all; line-height: 1.3; }
+  .yev a { color: inherit; text-decoration: none; display: block; }
+  .yev a:hover { text-decoration: underline; }
   .yev.ama { background: #e8f1fb; }
   .yev.s1 { background: #fbeae8; border-left-color: var(--s1); }
   .yev.s2 { background: #fdf0e2; border-left-color: var(--s2); }
@@ -123,7 +125,7 @@
   <div>ボード種別：
     <span class="badge board b-short">ショート</span><span class="badge board b-long">ロング</span><span class="badge board b-bb">BB</span><span class="badge board b-sup">SUP</span>
     ＝公式のクラス表記から判定できた大会だけに表示しています</div>
-  <div>日程が未定の大会と、⚠要確認（日付に確認が必要な点がある）大会は、この年間ページには載せていません。月名を押すと月別カレンダーでその月が開きます。</div>
+  <div>日程が未定の大会と、⚠要確認（日付に確認が必要な点がある）大会は、この年間ページには載せていません。月名を押すと月別カレンダーでその月が開きます。大会名を押すと、その大会の詳細カードへ移動します。</div>
 </div>
 
 <div class="ytoggle" id="yearToggle"></div>
@@ -206,9 +208,9 @@ function renderMonth(m) {
           const r = it.r;
           if (it.first) {
             const bl = r.board_short.length ? ` <span class="bl">[${escapeHtml(r.board_short.join('・'))}]</span>` : '';
-            cell += `<div class="yev ${r.cat_class}" title="${escapeHtml(r.title)}">${escapeHtml(shortTitle(r.title))}${bl}</div>`;
+            cell += `<div class="yev ${r.cat_class}" title="${escapeHtml(r.title)}"><a href="index.html?y=${curYear}&m=${m}&ev=${r.rid}">${escapeHtml(shortTitle(r.title))}${bl}</a></div>`;
           } else {
-            cell += `<div class="yev cont ${r.cat_class}" title="${escapeHtml(r.title)}">${escapeHtml(shortTitle(r.title))}（${it.dayIdx}日目）</div>`;
+            cell += `<div class="yev cont ${r.cat_class}" title="${escapeHtml(r.title)}"><a href="index.html?y=${curYear}&m=${m}&ev=${r.rid}">${escapeHtml(shortTitle(r.title))}（${it.dayIdx}日目）</a></div>`;
           }
         });
         html += cell + '</td>';

@@ -246,7 +246,7 @@
 <p class="hint">🔔 のボタンから、その大会のエントリー開始をLINEでお知らせできます（開始の3日前からお知らせします）。</p>
 <div id="upcomingList"></div>
 
-<details>
+<details id="pastDetails">
   <summary>終了した大会</summary>
   <div id="pastList"></div>
 </details>
@@ -503,6 +503,19 @@ document.getElementById('nextBtn').addEventListener('click', () => {
   curMonth++; if (curMonth > 12) { curMonth = 1; curYear++; } renderCalendar();
 });
 render();
+
+// 年間ページからの遷移（?ev=レコードID）で該当カードへ移動する
+const qev = qs.get('ev');
+if (qev !== null && qev !== '') {
+  requestAnimationFrame(() => {
+    const target = document.getElementById('card-' + qev);
+    if (!target) return;
+    const det = document.getElementById('pastDetails');
+    if (det && det.contains(target)) det.open = true;
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    target.classList.add('flash');
+  });
+}
 </script>
 </body>
 </html>
