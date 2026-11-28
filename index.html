@@ -142,6 +142,7 @@
   .foot-links a { background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; color: var(--navy); text-decoration: none; font-weight: bold; font-size: .88rem; box-shadow: var(--shadow); }
   .foot-links a.fl-line { background: #06c755; color: #fff; border-color: #06c755; }
   .notify-btn { display: inline-block; margin-top: 8px; background: #06c755; color: #fff; border-radius: 999px; padding: 7px 14px; text-decoration: none; font-weight: bold; font-size: .85rem; }
+  .notify-note { font-size: .78rem; color: #5a6b76; margin-top: 4px; }
   .hint { font-size: .85rem; color: #5a6b76; margin: 8px 2px; }
   .ev[data-rid] { cursor: pointer; }
   .ev[data-rid]:hover { text-decoration: underline; }
@@ -400,7 +401,7 @@ function notifyUrl(r) {
   return 'https://line.me/R/oaMessage/@779xjnww/?' + encodeURIComponent('通知登録 ' + r.code);
 }
 function notifyBtn(r) {
-  return `<a class="notify-btn" href="${notifyUrl(r)}" target="_blank" rel="noopener">🔔 この大会の通知を受け取る</a>`;
+  return `<a class="notify-btn" href="${notifyUrl(r)}" target="_blank" rel="noopener">🔔 この大会の通知を受け取る</a><div class="notify-note">LINEが開いたら、入っている文面をそのまま送信ボタンを押すだけです</div>`;
 }
 
 // 状態バッジの導出：日程未定／日程決定／エントリー受付中／受付終了／終了。
