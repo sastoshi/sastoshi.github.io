@@ -398,7 +398,7 @@ function escapeHtml(s) {
 }
 
 function notifyUrl(r) {
-  return 'https://line.me/R/oaMessage/@779xjnww/?' + encodeURIComponent('通知登録 ' + r.code);
+  return 'https://line.me/R/oaMessage/@779xjnww/?' + encodeURIComponent('このまま送信してください（通知登録 ' + r.code + '）');
 }
 function notifyBtn(r) {
   return `<a class="notify-btn" href="${notifyUrl(r)}" target="_blank" rel="noopener">🔔 この大会の通知を受け取る</a><div class="notify-note">LINEが開いたら、入っている文面をそのまま送信ボタンを押すだけです</div>`;
